@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Catch the Square - Advanced</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #f0f8ff;
+    }
+
+    #gameArea {
+      width: 500px;
+      height: 500px;
+      background-color: #fff;
+      border: 3px solid #000;
+      margin: 20px auto;
+      position: relative;
+    }
+
+    #square {
+      width: 50px;
+      height: 50px;
+      background-color: red;
+      position: absolute;
+      cursor: pointer;
+      display: none;
+    }
+
+    #score, #timer, #level {
+      font-size: 22px;
+      margin: 10px;
+    }
+
+    button, select {
+      padding: 10px 15px;
+      font-size: 16px;
+      margin: 10px;
+    }
+
+    #leaderboard {
+      margin-top: 30px;
+    }
+
+    #leaderboard h3 {
+      margin-bottom: 5px;
+    }
+
+    #leaderboard ul {
+      list-style: none;
+      padding: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎯 Catch the Square With Jada ❤️</h1>
+  <div id="score">Score: 0</div>
+  <div id="timer">Time: 30s</div>
+  <div>
+    <label for="difficulty">Difficulty:</label>
+    <select id="difficulty">
+      <option value="1000">Easy</option>
+      <option value="700">Medium</option>
+      <option value="400">Hard</option>
+    </select>
+    <button onclick="startGame()">Start Game</button>
+  </div>
+
+  <div id="gameArea">
+    <div id="square"></div>
+  </div>
+
+  <div id="leaderboard">
+    <h3>🏆 Top Scores</h3>
+    <ul id="topScores"></ul>
+  </div>
+
+  <audio id="bgMusic" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" loop></audio>
+
+  <script>
+    const square = document.getElementById('square');
+    const scoreDisplay = document.getElementById('score');
+    const timerDisplay = document.getElementById('timer');
+    const gameArea = document.getElementById('gameArea');
+    const difficultySelect = document.getElementById('difficulty');
+    const leaderboard = document.getElementById('topScores');
+    const music = document.getElementById('bgMusic');
+
+    let score = 0;
+    let timeLeft = 30;
+    let gameTimer, moveInterval;
+
+    function getRandomPosition() {
+      const x = Math.random() * (gameArea.clientWidth - square.offsetWidth);
+      const y = Math.random() * (gameArea.clientHeight - square.offsetHeight);
+      return { x, y };
+    }
+
+    function moveSquare() {
+      const pos = getRandomPosition();
+      square.style.left = pos.x + 'px';
+      square.style.top = pos.y + 'px';
+    }
+
+    function startGame() {
+      score = 0;
+      timeLeft = 30;
+      scoreDisplay.textContent = 'Score: 0';
+      timerDisplay.textContent = 'Time: 30s';
+      square.style.display = 'block';
+      music.play();
+
+      clearInterval(gameTimer);
+      clearInterval(moveInterval);
+
+      moveSquare();
+
+      const speed = parseInt(difficultySelect.value);
+
+      square.onclick = () => {
+        score++;
+        scoreDisplay.textContent = `Score: ${score}`;
+        moveSquare();
+      };
+
+      gameTimer = setInterval(() => {
+        timeLeft--;
+        timerDisplay.textContent = `Time: ${timeLeft}s`;
+        if (timeLeft <= 0) {
+          endGame();
+        }
+      }, 1000);
+
+      moveInterval = setInterval(moveSquare, speed);
+    }
+
+    function endGame() {
+      clearInterval(gameTimer);
+      clearInterval(moveInterval);
+      square.style.display = 'none';
+      music.pause();
+      music.currentTime = 0;
+      alert(`⏰ Time's up! Your score is ${score}`);
+      saveScore(score);
+      displayLeaderboard();
+    }
+
+    function saveScore(newScore) {
+      let scores = JSON.parse(localStorage.getItem('topScores')) || [];
+      scores.push(newScore);
+      scores.sort((a, b) => b - a);
+      scores = scores.slice(0, 3); // Top 3
+      localStorage.setItem('topScores', JSON.stringify(scores));
+    }
+
+    function displayLeaderboard() {
+      const scores = JSON.parse(localStorage.getItem('topScores')) || [];
+      leaderboard.innerHTML = scores.map(s => `<li>${s} points</li>`).join('');
+    }
+
+    displayLeaderboard();
+  </script>
+
+</body>
+</html>
